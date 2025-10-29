@@ -65,3 +65,18 @@ impl<'a> Downloader<'a> {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn test_download() {
+        let url = "https://ash-speed.hetzner.com/100MB.bin";
+        let title = "100MB.bin";
+        let output_path = "100MB.bin";
+        let mut downloader = Downloader::new(url, title, output_path);
+        let res = downloader.download().await;
+        assert!(matches!(res, Ok(())));
+    }
+}
