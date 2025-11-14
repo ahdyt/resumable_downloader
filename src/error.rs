@@ -10,4 +10,6 @@ pub enum DownloadError {
 
     #[error("Invalid response: {0}")]
     InvalidResponse(String),
+    #[error("Range Not Satisfiable (416)")]
+    RangeNotSatisfiable,
 }
