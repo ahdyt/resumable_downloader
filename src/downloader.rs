@@ -1,20 +1,25 @@
 use crate::{error::DownloadError, progress::ProgressManager};
 use fs2::FileExt;
-use futures_util::StreamExt;
+use futures::StreamExt;
 use reqwest::header::{HeaderValue, RANGE};
-use std::ffi::OsStr;
 use std::fs::OpenOptions;
 use std::io::{Seek, SeekFrom, Write};
-use std::os::windows::ffi::OsStrExt;
 use std::path::Path;
 use std::sync::Arc;
 use std::time::Instant;
+
+#[cfg(target_os = "windows")]
+use std::ffi::OsStr;
+#[cfg(target_os = "windows")]
+use std::os::windows::ffi::OsStrExt;
+#[cfg(target_os = "windows")]
 use windows_sys::Win32::Storage::FileSystem::{SetFileAttributesW, FILE_ATTRIBUTE_HIDDEN};
 
 fn to_mb(b: u64) -> f64 {
     b as f64 / (1024.0 * 1024.0)
 }
 
+#[cfg(target_os = "windows")]
 fn set_hidden_windows(path: &str) {
     let mut wide: Vec<u16> = OsStr::new(path).encode_wide().collect();
     wide.push(0); // Null terminator
