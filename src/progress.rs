@@ -1,7 +1,21 @@
+// progress.rs
+
 use crossterm::terminal::size;
 use regex::Regex;
 use std::io::{self, Write};
 use std::sync::{Arc, Mutex};
+
+// =====================================
+// ProgressManager trait
+// =====================================
+
+pub trait ProgressManager: Send + Sync {
+    /// Register a new progress line and return its index
+    fn register(&self) -> usize;
+
+    /// Update the content of a specific line
+    fn update(&self, line: usize, content: &str);
+}
 
 // =====================================
 // ANSI stripping + visible-width truncation
@@ -142,11 +156,11 @@ impl LineBuffer {
 }
 
 // =====================================
-// ProgressManager
+// StdoutProgressManager implementation
 // =====================================
 
 #[derive(Clone)]
-pub struct ProgressManager {
+pub struct StdoutProgressManager {
     buf: LineBuffer,
     inner: Arc<Mutex<ProgressState>>,
 }
@@ -155,15 +169,17 @@ struct ProgressState {
     lines: usize,
 }
 
-impl ProgressManager {
+impl StdoutProgressManager {
     pub fn new() -> Self {
         Self {
             buf: LineBuffer::new(0),
             inner: Arc::new(Mutex::new(ProgressState { lines: 0 })),
         }
     }
+}
 
-    pub fn register(&self) -> usize {
+impl ProgressManager for StdoutProgressManager {
+    fn register(&self) -> usize {
         let mut state = self.inner.lock().unwrap();
         let id = state.lines;
         state.lines += 1;
@@ -175,8 +191,22 @@ impl ProgressManager {
     }
 
     // Update single line only
-    pub fn update(&self, line: usize, content: &str) {
+    fn update(&self, line: usize, content: &str) {
         self.buf.set(line, content.to_string());
         self.buf.flush_line(line);
+    }
+}
+
+// Optional: NullProgressManager for testing or when no progress is needed
+#[derive(Clone)]
+pub struct NullProgressManager;
+
+impl ProgressManager for NullProgressManager {
+    fn register(&self) -> usize {
+        0 // Always returns same index since we don't track anything
+    }
+
+    fn update(&self, _line: usize, _content: &str) {
+        // Do nothing
     }
 }

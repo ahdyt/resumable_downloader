@@ -38,7 +38,7 @@ pub struct Downloader<'a> {
     url: &'a str,
     title: &'a str,
     output_path: &'a str,
-    progress: Option<(Arc<ProgressManager>, usize)>,
+    progress: Option<(Arc<dyn ProgressManager + Send + Sync>, usize)>,
 }
 
 impl<'a> Downloader<'a> {
@@ -46,7 +46,7 @@ impl<'a> Downloader<'a> {
         url: &'a str,
         title: &'a str,
         output_path: &'a str,
-        progress: Option<(Arc<ProgressManager>, usize)>,
+        progress: Option<(Arc<dyn ProgressManager + Send + Sync>, usize)>,
     ) -> Self {
         Self {
             url,
@@ -265,6 +265,7 @@ impl<'a> Downloader<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::progress::StdoutProgressManager;
     use futures::future::join_all;
 
     #[tokio::test]
@@ -300,7 +301,7 @@ mod tests {
                 "1GB.bin",
             ),
         ];
-        let progress = Arc::new(ProgressManager::new());
+        let progress = Arc::new(StdoutProgressManager::new());
         let mut tasks = Vec::new();
 
         for test_download in test_downloads {
