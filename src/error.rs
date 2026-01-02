@@ -8,6 +8,8 @@ pub enum DownloadError {
     Io(#[from] std::io::Error),
     #[error("Invalid response: {0}")]
     InvalidResponse(String),
+    #[error("Invalid range")]
+    InvalidRange,
     #[error("Range Not Satisfiable (416)")]
     RangeNotSatisfiable,
     #[error("Unsupported Server")]
